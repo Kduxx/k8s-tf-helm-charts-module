@@ -13,5 +13,16 @@ resource "helm_release" "release" {
   repository_password = lookup(each.value, "repository_password", null)
 
   values = [file(each.value.values)]
+}
+
+data "kubectl_file_documents" "files" {
+  count   = length(var.additional_manifests_files)
+  content = file(var.additional_manifests_files[count.index])
+}
+
+resource "kubectl_manifest" "manifest" {
+  for_each  = concat(data.kubectl_file_documents.files.*.manifests)
+  yaml_body = each.value
+  wait      = var.additional_manifests_wait_deployment
 
 }
