@@ -20,9 +20,9 @@ data "kubectl_file_documents" "files" {
   content = file(var.additional_manifests_files[count.index])
 }
 
-resource "kubectl_manifest" "manifest" {
-  for_each  = concat(data.kubectl_file_documents.files.*.manifests)
-  yaml_body = each.value
+resource "kubectl_manifest" "manifests" {
+  for_each  = { for index, manifest in data.kubectl_file_documents.files.*.manifests : "manifest-${index}" => manifest }
+  yaml_body = values(each.value)[0]
   wait      = var.additional_manifests_wait_deployment
 
 }
